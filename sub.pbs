@@ -1,0 +1,15 @@
+#PBS -N all
+#PBS -q pub
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=20:00:00
+#PBS -j oe
+#PBS -S /bin/bash
+#PBS -V
+
+
+    cd $PBS_O_WORKDIR
+   NP=`cat $PBS_NODEFILE | wc -l`
+   source /public/software/profile.d/mpi_openmpi-2.0.0-intel.sh
+   source /public/software/profile.d/apps_lammps-31Mar17-intelmpi5.2017.sh
+   source /public/software/profile.d/apps_matlab.sh
+   matlab -r main > matlab_log

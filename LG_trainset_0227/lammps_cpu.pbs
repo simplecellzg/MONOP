@@ -1,0 +1,17 @@
+#PBS -N template
+#PBS -q pub
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=240:00
+#PBS -j oe
+#PBS -S /bin/bash
+#PBS -V
+cd $PBS_O_WORKDIR
+
+INPUT_FILE=in.name
+
+NP=`cat $PBS_NODEFILE | wc -l`
+
+#source /public/software/profile.d/apps_lammps-10Feb15-intel.sh
+source /public/software/profile.d/apps_lammps-31Mar17-intelmpi5.2017.sh
+
+mpirun -np $NP -hostfile $PBS_NODEFILE lmp_mpi < $INPUT_FILE > lammps.log

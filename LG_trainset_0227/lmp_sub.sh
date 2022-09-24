@@ -1,0 +1,79 @@
+ffield=ffield.reax.weak2017m
+control_file=control.reax_c.weak2017m
+in_file=in.reaxc.example
+pbs_file=example.pbs
+dos2unix $ffield
+dos2unix $control_file
+dos2unix $in_file
+dos2unix $pbs_file
+dir=`ls -F | grep "/$"`
+#for dir_s in $dir
+#	do
+#		cp ./${ffield} ./${dir_s}/${ffield}
+#		cp ./${control_file} ./${dir_s}/${control_file}
+#		cp ./${in_file} ./${dir_s}/${in_file}
+#		cp ./${pbs_file} ./${dir_s}/${pbs_file}
+		# cd ${dir_s}
+		
+		#echo "dir is ${dir_s} in `date`"
+		for lmp in `ls *.data`
+			do
+				type_str=""
+				type_num=`awk -F" " 'NR==4{print $1}' $lmp`
+				start_row=`sed -n -e '/Masses/=' $lmp`
+				let "start_row+=2"
+				end_row=$(echo "${start_row}+${type_num}-1"|bc)
+				#echo $type_num
+				#echo $start_row
+				#echo $end_row
+				for  tp in `seq ${start_row} ${end_row}`
+					do
+						type=`awk -F" " 'NR=='$tp'{print $4}' $lmp`
+					  type_str="${type_str} ${type:0:1}"
+					done
+					#echo $type_str
+				basename=${lmp%.data}
+				echo "dir is ${dir_s} file is ${basename} in `date`"
+				new_control_file=${control_file}.${basename}
+				new_in_file=in.reaxc.${basename}
+				new_pbs_file=${basename}.pbs
+				new_log_file=${basename}.lammps.log
+				cp ./${control_file} ./${new_control_file}
+				cp ./${in_file} ./${new_in_file}
+				cp ./${pbs_file} ./${new_pbs_file}
+				readdata_row=`sed -n -e '/read_data/=' ${new_in_file}`
+				elem_row=`sed -n -e '/variable elem string/=' ${new_in_file}`
+				style_row=`sed -n -e '/pair_style	reax/=' ${new_in_file}`
+				coeff_row=`sed -n -e '/pair_coeff/=' ${new_in_file}`
+				title_row=`sed -n -e '/#PBS -N/=' ${new_pbs_file}`
+				input_row=`sed -n -e '/INPUT_FILE=/=' ${new_pbs_file}`
+				output_row=`sed -n -e '/OUTPUT_FILE=/=' ${new_pbs_file}`
+				#echo $output_row
+			  sed -i "1s/NC/${basename}/g" ${new_control_file}
+				sed -i "12s/NC/${basename}/g" ${new_control_file}
+				sed -i "${readdata_row}c read_data   $lmp" ${new_in_file}
+				sed -i "${elem_row}c variable elem string \"$type_str\"" ${new_in_file}
+				sed -i "${style_row}c pair_style	reax/c ${new_control_file} lgvdw yes" ${new_in_file}
+				sed -i "${coeff_row}c pair_coeff      * * ${ffield} \${elem}" ${new_in_file}
+				sed -i "${title_row}c #PBS -N ${basename}" ${new_pbs_file}
+				sed -i "${input_row}c INPUT_FILE=${new_in_file}" ${new_pbs_file}
+				sed -i "${output_row}c OUTPUT_FILE=${new_log_file}" ${new_pbs_file}
+				#awk 'NR=='${elem_row}'{print $0}' ${new_in_file}
+			done
+			bb=`ls *.pbs`
+        wk=work.sh
+        cat /dev/null >$wk
+     for j in $bb;  
+        do   
+          echo "qsub $j" >>$wk
+          echo "echo $j" >>$wk
+          sed -i "s/qsub example.pbs//g" $wk
+          sed -i "s/qsub g09.pbs//g" $wk
+        done 
+        #cd ..
+# done
+				
+				
+
+				
+				

@@ -1,0 +1,19 @@
+#PBS -N TNT
+#PBS -q pub
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=240:00
+#PBS -j oe
+#PBS -S /bin/bash
+#PBS -V
+cd $PBS_O_WORKDIR
+
+INPUT_FILE=in.reaxc.TNT
+OUTPUT_FILE=lammps.log
+
+NP=`cat $PBS_NODEFILE | wc -l`
+
+#source /public/software/profile.d/mpi_openmpi-2.0.0-intel.sh
+#mpirun -np $NP -hostfile $PBS_NODEFILE --mca btl openib,self,sm /public/software/lammps/16Mar18/intel/openmpi-2.0.0/lmp_mpi < $INPUT_FILE > ${OUTPUT_FILE}
+
+source /public/software/profile.d/apps_lammps-31Mar17-intelmpi5.2017.sh
+mpirun -np $NP -hostfile $PBS_NODEFILE lmp_mpi < $INPUT_FILE > ${OUTPUT_FILE}
